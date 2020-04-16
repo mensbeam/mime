@@ -39,4 +39,51 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
             }
         }
     }
+
+    public function testDecodeAByteString(): void {
+        // set up the text with the Intl extension
+        $input = "";
+        $exp = "";
+        for ($a = 0; $a <= 0xFF; $a++) {
+            $input .= chr($a);
+            $exp .= \IntlChar::chr($a);
+        }
+        // perform the test
+        $this->assertSame($exp, Mime::decode($input));
+    }
+
+    public function testEncodeAValidString(): void {
+        // set up the text with the Intl extension
+        $input = "";
+        $exp = "";
+        for ($a = 0; $a <= 0xFF; $a++) {
+            $exp .= chr($a);
+            $input .= \IntlChar::chr($a);
+        }
+        // perform the test
+        $this->assertSame($exp, Mime::encode($input));
+    }
+
+    public function testEncodeAnInvalidString(): void {
+        // set up the text with the Intl extension
+        $input = "!\u{1F4A9}!";
+        // perform the test
+        $this->assertNull(Mime::encode($input));
+    }
+
+    public function testParseAByteString(): void {
+        $input = "application/unknown;param=\"\xE9tude\"";
+        $exp = "application/unknown;param=\"\u{E9}tude\"";
+        $this->assertSame($exp, (string) Mime::parseBytes($input));
+    }
+
+    public function testAccessInstanceProperties(): void {
+        $input = "TEXT/HTML; VERSION=3.2; charset=utf-8; charset=iso-8859-1;";
+        $obj = Mime::parse($input);
+        $this->assertInstanceOf(Mime::class, $obj);
+        $this->assertSame("text", $obj->type);
+        $this->assertSame("html", $obj->subtype);
+        $this->assertSame("text/html", $obj->essence);
+        $this->assertSame(['version' => "3.2", 'charset' => "utf-8"], $obj->params);
+    }
 }

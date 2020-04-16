@@ -89,7 +89,7 @@ PATTERN;
         for ($a = 0; $a < strlen($bytes); $a++) {
             $c = $bytes[$a];
             $p = ord($c);
-            $out .= $p < 0x80 ? $c : self::CHAR_MAP[$a];
+            $out .= $p < 0x80 ? $c : self::CHAR_MAP[$p];
         }
         return $out;
     }
@@ -97,7 +97,10 @@ PATTERN;
     public static function encode(string $chars): ?string {
         $map = array_combine(array_values(self::CHAR_MAP), range(chr(0x80), chr(0xFF)));
         $out = "";
-        foreach (preg_split("<>u", $chars) as $c) {
+        $set = array_reverse(preg_split("<>u", $chars));
+        array_pop($set);
+        while (sizeof($set) > 1) {
+            $c = array_pop($set);
             if (strlen($c) === 1) {
                 $out .= $c;
             } elseif (isset($map[$c])) {
