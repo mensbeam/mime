@@ -1,0 +1,7 @@
+* text=auto encoding=utf-8
+
+*.html     diff=html
+*.php      diff=php
+*.bat      eol=crlf
+*.cmd      eol=crlf
+.gitignore -eol

@@ -1,0 +1,5 @@
+/vendor
+/vendor-bin/*/vendor
+/tests/coverage
+/tests/.phpunit.result.cache
+/.php_cs.cache

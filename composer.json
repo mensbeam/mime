@@ -1,0 +1,39 @@
+{
+    "name": "mensbeam/mimesniff",
+    "type": "library",
+    "description": "An implementation of the WHATWG Mimesniff specification",
+    "keywords": ["whatwg", "mime", "mimesniff"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "J. King",
+            "email": "jking@jkingweb.ca",
+            "homepage": "https://jkingweb.ca/"
+        }
+    ],
+    "require": {
+        "php": "^7.1"
+    },
+    "require-dev": {
+        "bamarni/composer-bin-plugin": "^1.3"
+    },
+    "config": {
+        "platform": {
+            "php": "7.1.33"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": ["@composer bin all install"],
+        "post-update-cmd": ["@composer bin all update"]
+    },
+    "autoload": {
+        "psr-4": {
+            "MensBeam\\Mime\\": "lib/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MensBeam\\Mime\\TestCase\\": "tests/cases/"
+        }
+    }
+}
