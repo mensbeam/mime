@@ -1,0 +1,11 @@
+Version 0.1.1 (2020-04-17)
+==========================
+
+Bug fixes:
+- Allow subclasses to access constructor and concrete properties
+
+Version 0.1.0 (2020-04-16)
+==========================
+
+Features:
+- Parsing of MIME types
