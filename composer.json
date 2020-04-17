@@ -1,7 +1,7 @@
 {
     "name": "mensbeam/mimesniff",
     "type": "library",
-    "description": "An implementation of the WHATWG Mimesniff specification",
+    "description": "An implementation of the WHATWG MIME Sniffing specification",
     "keywords": ["whatwg", "mime", "mimesniff"],
     "license": "MIT",
     "authors": [
