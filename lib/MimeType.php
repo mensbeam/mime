@@ -6,10 +6,25 @@
 declare(strict_types=1);
 namespace MensBeam\Mime;
 
-/** @property-read string $type
- * @property-read string $subtype
- * @property-read string $essence
- * @property-read array $params
+/** A structured representation of a MIME type, consitent with the WHATWG MIME Sniffing specification
+ * 
+ * The class is not instantiated directly, but rather via many of its static methods. 
+ * If parsing e.g. "TeXt/HTML; X=a; Y=B", the result will expose the following read-only
+ * properties:
+ * 
+ * - `type`: `"text"`
+ * - `subtype`: `"html"`
+ * - `essence`: `"text/html"`
+ * - `params`: `['x' => "a", 'y' => "B"]`
+ * 
+ * Instances may be cast to strings to yield a normalized representation
+ * 
+ * @see https://mimesniff.spec.whatwg.org/
+ * 
+ * @property-read string $type The major type of the MIME type i.e. the part before the slash
+ * @property-read string $subtype The subtype of the MIME type i.e. the part after the slash
+ * @property-read string $essence The full MIME type without paramters e.g. `"text/html"`
+ * @property-read array $params The associative array of parameters included with the type. Keys are lowercase; values are presented in their original case, unescaped
  */
 class MimeType {
     protected const TYPE_PATTERN = <<<'PATTERN'
@@ -70,6 +85,12 @@ PATTERN;
         return $out;
     }
 
+    /** Parses a UTF-8 string and returns a MimeType instance, or null on failure
+     * 
+     * If parsing an HTTP header, the MimeType::parseBytes method should be used instead
+     * 
+     * @see \MensBeam\Mime\MimeType::parseBytes
+     */
     public static function parse(string $mimeType): ?self {
         if (preg_match(self::TYPE_PATTERN, $mimeType, $match)) {
             [$mimeType, $type, $subtype, $params] = array_pad($match, 4, "");
@@ -80,10 +101,19 @@ PATTERN;
         return null;
     }
 
+    /** Parses a binary string and returns a MimeType instance, or null on failure
+     * 
+     * This should be used on MIME type strings from HTTP headers, which use a special character set
+     */
     public static function parseBytes(string $mimeType): ?self {
         return static::parse(static::decode($mimeType));
     }
 
+    /** Returns the UTF-8 isomorphically decoded form of the binary string $bytes
+     * 
+     * @see https://infra.spec.whatwg.org/#isomorphic-decode
+     * @param string $bytes The binary string to decode to UTF-8
+     */
     public static function decode(string $bytes): string {
         $out = "";
         for ($a = 0; $a < strlen($bytes); $a++) {
@@ -94,6 +124,15 @@ PATTERN;
         return $out;
     }
 
+    /** Returns the isomorphically encoded form of the UTF-8 input string $chars
+     * 
+     * If the input contains characters beyond the Latin-1 Supplement block, null is returned
+     * 
+     * This method should be used when a MIME type of unknown provenance is to be inserted into an HTTP header
+     * 
+     * @see https://infra.spec.whatwg.org/#isomorphic-encode
+     * @param string $chars The UTF-8 encoded string to convert to binary
+     */
     public static function encode(string $chars): ?string {
         $map = array_combine(array_values(self::CHAR_MAP), range(chr(0x80), chr(0xFF)));
         $out = "";
@@ -112,6 +151,10 @@ PATTERN;
         return $out;
     }
 
+    /** Parses a parameter string into an associative array of keys and values
+     * 
+     * If a parameter appears more than once, the first valid instance is used
+     */
     protected static function parseParams(string $params): array {
         $out = [];
         if (preg_match_all(self::PARAM_PATTERN, $params, $matches, \PREG_SET_ORDER)) {
@@ -137,6 +180,12 @@ PATTERN;
         return $out;
     }
 
+    /** Validates a st ring as an HTTP token production
+     * 
+     * Returns an empty string if the string is not a valid token
+     * 
+     * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
+     */
     protected static function parseHttpToken(string $token): string {
         if (preg_match(self::TOKEN_PATTERN, $token, $match)) {
             return $token;
@@ -144,6 +193,12 @@ PATTERN;
         return "";
     }
 
+    /** Trims and validates a bare HTTP value string; per HTTP this should be a token, but WHATWG allows the full qdtext production
+     * 
+     * Returns an empty string if the string is not a valid token
+     * 
+     * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
+     */
     protected static function parseHttpBareValue(string $value): string {
         $value = rtrim($value, "\t\r\n ");
         if (preg_match(self::BARE_VALUE_PATTERN, $value, $match)) {
@@ -152,6 +207,12 @@ PATTERN;
         return "";
     }
 
+    /** Trims and validates a quoted HTTP value string per the qdtext production
+     * 
+     * Returns null if the string is not a valid token; an emptty string is a valid value 
+     * 
+     * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
+     */
     protected static function parseHttpQuotedValue(string $value): ?string {
         if (preg_match(self::QUOTED_VALUE_PATTERN, $value, $match)) {
             return preg_replace(self::ESCAPE_PATTERN, '$1', $match[1]);
