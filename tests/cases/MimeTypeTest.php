@@ -41,7 +41,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testDecodeAByteString(): void {
-        // set up the text with the Intl extension
+        // set up the test with the Intl extension
         $input = "";
         $exp = "";
         for ($a = 0; $a <= 0xFF; $a++) {
@@ -53,7 +53,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testEncodeAValidString(): void {
-        // set up the text with the Intl extension
+        // set up the test with the Intl extension
         $input = "";
         $exp = "";
         for ($a = 0; $a <= 0xFF; $a++) {
@@ -65,9 +65,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testEncodeAnInvalidString(): void {
-        // set up the text with the Intl extension
         $input = "!\u{1F4A9}!";
-        // perform the test
         $this->assertNull(Mime::encode($input));
     }
 

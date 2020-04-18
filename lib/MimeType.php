@@ -7,24 +7,34 @@ declare(strict_types=1);
 namespace MensBeam\Mime;
 
 /** A structured representation of a MIME type, consitent with the WHATWG MIME Sniffing specification
- * 
- * The class is not instantiated directly, but rather via many of its static methods. 
+ *
+ * The class is not instantiated directly, but rather via many of its static methods.
  * If parsing e.g. "TeXt/HTML; X=a; Y=B", the result will expose the following read-only
  * properties:
- * 
+ *
  * - `type`: `"text"`
  * - `subtype`: `"html"`
  * - `essence`: `"text/html"`
  * - `params`: `['x' => "a", 'y' => "B"]`
- * 
+ *
  * Instances may be cast to strings to yield a normalized representation
- * 
+ *
  * @see https://mimesniff.spec.whatwg.org/
- * 
+ *
  * @property-read string $type The major type of the MIME type i.e. the part before the slash
  * @property-read string $subtype The subtype of the MIME type i.e. the part after the slash
  * @property-read string $essence The full MIME type without paramters e.g. `"text/html"`
  * @property-read array $params The associative array of parameters included with the type. Keys are lowercase; values are presented in their original case, unescaped
+ * @property-read bool $isArchive Whether the MIME type is an archive type
+ * @property-read bool $isAudioVideo Whether the MIME type is an audio or video type
+ * @property-read bool $isFont Whether the MIME type is a font type
+ * @property-read bool $isHtml Whether the MIME type is HTML
+ * @property-read bool $isImage Whether the MIME type is an image type
+ * @property-read bool $isJavascript Whether the MIME type is a JavaScript type
+ * @property-read bool $isJson Whether the MIME type is a JSON type
+ * @property-read bool $isScriptable Whether the MIME type is a type which can be scripted (namely via JavaScript)
+ * @property-read bool $isXml Whether the MIME type is an XML type
+ * @property-read bool $isZipBased Whether the MIME type is a ZIP-based type
  */
 class MimeType {
     protected const TYPE_PATTERN = <<<'PATTERN'
@@ -61,6 +71,16 @@ PATTERN;
     protected $subtype = "";
     protected $params = [];
     private $essence;
+    private $isArchive;
+    private $isAudioVideo;
+    private $isFont;
+    private $isHtml;
+    private $isImage;
+    private $isJavascript;
+    private $isJson;
+    private $isScriptable;
+    private $isXml;
+    private $isZipBased;
 
     protected function __construct(string $type = "", string $subtype = "", array $params = []) {
         $this->type = $type;
@@ -69,14 +89,36 @@ PATTERN;
     }
 
     public function __get(string $name) {
-        if ($name === "essence") {
-            return $this->type."/".$this->subtype;
+        switch ($name) {
+            case "essence":
+                return $this->essence();
+            case "isArchive":
+                return in_array($this->essence(), ["application/zip", "application/x-gzip", "application/x-rar-compressed"]);
+            case "isAudioVideo":
+                return $this->type === "audio" || $this->type === "video" || $this->essence() === "application/ogg";
+            case "isFont":
+                return $this->type === "font" || preg_match("<^application/(?:font-(?:cff|off|sfnt|ttf|woff)|vnd\.ms-(?:fontobject|opentype))$>", $this->essence());
+            case "isHtml":
+                return $this->essence() === "text/html";
+            case "isImage":
+                return $this->type === "image";
+            case "isJavascript":
+                return (bool) preg_match("<^(?:(?:text|application)/(?:(?:x-)?(?:ecma|java)script)|text/(?:livescript|jscript|javascript1\.[1-5]))$>", $this->essence());
+            case "isJson":
+                return substr($this->subtype, -5) === "+json" || preg_match("<^(?:text|application)/json$>", $this->essence());
+            case "isScriptable":
+                return $this->essence() === "application/pdf" || $this->__get("isHtml") || $this->__get("isXml");
+            case "isXml":
+                return substr($this->subtype, -4) === "+xml" || preg_match("<^(?:text|application)/xml$>", $this->essence());
+            case "isZipBased":
+                return substr($this->subtype, -4) === "+zip" || $this->essence() === "application/zip";
+            default:
+                return $this->$name ?? null;
         }
-        return $this->$name ?? null;
     }
 
     public function __toString(): string {
-        $out = $this->__get("essence");
+        $out = $this->essence();
         if (is_array($this->params) && sizeof($this->params)) {
             foreach ($this->params as $name => $value) {
                 $out .= ";$name=".(preg_match(self::TOKEN_PATTERN, $value) ? $value : '"'.str_replace(["\\", '"'], ["\\\\", "\\\""], $value).'"');
@@ -85,10 +127,14 @@ PATTERN;
         return $out;
     }
 
+    protected function essence(): string {
+        return $this->type."/".$this->subtype;
+    }
+
     /** Parses a UTF-8 string and returns a MimeType instance, or null on failure
-     * 
+     *
      * If parsing an HTTP header, the MimeType::parseBytes method should be used instead
-     * 
+     *
      * @see \MensBeam\Mime\MimeType::parseBytes
      */
     public static function parse(string $mimeType): ?self {
@@ -102,7 +148,7 @@ PATTERN;
     }
 
     /** Parses a binary string and returns a MimeType instance, or null on failure
-     * 
+     *
      * This should be used on MIME type strings from HTTP headers, which use a special character set
      */
     public static function parseBytes(string $mimeType): ?self {
@@ -110,7 +156,7 @@ PATTERN;
     }
 
     /** Returns the UTF-8 isomorphically decoded form of the binary string $bytes
-     * 
+     *
      * @see https://infra.spec.whatwg.org/#isomorphic-decode
      * @param string $bytes The binary string to decode to UTF-8
      */
@@ -125,11 +171,11 @@ PATTERN;
     }
 
     /** Returns the isomorphically encoded form of the UTF-8 input string $chars
-     * 
+     *
      * If the input contains characters beyond the Latin-1 Supplement block, null is returned
-     * 
+     *
      * This method should be used when a MIME type of unknown provenance is to be inserted into an HTTP header
-     * 
+     *
      * @see https://infra.spec.whatwg.org/#isomorphic-encode
      * @param string $chars The UTF-8 encoded string to convert to binary
      */
@@ -152,7 +198,7 @@ PATTERN;
     }
 
     /** Parses a parameter string into an associative array of keys and values
-     * 
+     *
      * If a parameter appears more than once, the first valid instance is used
      */
     protected static function parseParams(string $params): array {
@@ -181,9 +227,9 @@ PATTERN;
     }
 
     /** Validates a st ring as an HTTP token production
-     * 
+     *
      * Returns an empty string if the string is not a valid token
-     * 
+     *
      * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
      */
     protected static function parseHttpToken(string $token): string {
@@ -194,9 +240,9 @@ PATTERN;
     }
 
     /** Trims and validates a bare HTTP value string; per HTTP this should be a token, but WHATWG allows the full qdtext production
-     * 
+     *
      * Returns an empty string if the string is not a valid token
-     * 
+     *
      * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
      */
     protected static function parseHttpBareValue(string $value): string {
@@ -208,9 +254,9 @@ PATTERN;
     }
 
     /** Trims and validates a quoted HTTP value string per the qdtext production
-     * 
-     * Returns null if the string is not a valid token; an emptty string is a valid value 
-     * 
+     *
+     * Returns null if the string is not a valid token; an emptty string is a valid value
+     *
      * @see https://tools.ietf.org/html/rfc7230#section-3.2.6
      */
     protected static function parseHttpQuotedValue(string $value): ?string {
