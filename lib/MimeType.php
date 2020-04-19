@@ -103,7 +103,7 @@ PATTERN;
             case "isImage":
                 return $this->type === "image";
             case "isJavascript":
-                return (bool) preg_match("<^(?:(?:text|application)/(?:(?:x-)?(?:ecma|java)script)|text/(?:livescript|jscript|javascript1\.[1-5]))$>", $this->essence());
+                return (bool) preg_match("<^(?:(?:text|application)/(?:(?:x-)?(?:ecma|java)script)|text/(?:livescript|jscript|javascript1\.[0-5]))$>", $this->essence());
             case "isJson":
                 return substr($this->subtype, -5) === "+json" || preg_match("<^(?:text|application)/json$>", $this->essence());
             case "isScriptable":

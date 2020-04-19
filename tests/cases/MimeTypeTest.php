@@ -20,7 +20,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function provideStandardTests(): iterable {
-        foreach (new \GlobIterator(__DIR__."/*.json", \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::KEY_AS_FILENAME) as $file => $path) {
+        foreach (new \GlobIterator(__DIR__."/std/*.json", \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::KEY_AS_FILENAME) as $file => $path) {
             $indexOffset = 0;
             $description = "";
             foreach (json_decode(file_get_contents($path)) as $index => $test) {
@@ -38,6 +38,56 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
                 }
             }
         }
+    }
+
+    /** @dataProvider provideMimeTypeGroups */
+    public function testDetermineMimeTypeGroups(string $type, array $booleans): void {
+        $t = Mime::parse($type);
+        foreach ($booleans as $prop => $exp) {
+            $this->assertSame($exp, $t->$prop, "Property $prop does not match expectation");
+        }
+    }
+
+    public function provideMimeTypeGroups(): iterable {
+        $propMap = [
+            'image'          => "isImage",
+            'audio or video' => "isAudioVideo",
+            'font'           => "isFont",
+            'ZIP-based'      => "isZipBased",
+            'archive'        => "isArchive",
+            'XML'            => "isXml",
+            'HTML'           => "isHtml",
+            'scriptable'     => "isScriptable",
+            'JavaScript'     => "isJavascript",
+            'JSON'           => "isJson",
+        ];
+        foreach (new \GlobIterator(__DIR__."/mime-groups.json", \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::KEY_AS_FILENAME) as $file => $path) {
+            $indexOffset = 0;
+            $description = "";
+            foreach (json_decode(file_get_contents($path)) as $index => $test) {
+                if (is_string($test)) {
+                    // the array member is a description of the next member
+                    // the index offset should be decremented, the description stored, and this entry skipped
+                    $indexOffset--;
+                    $description = $test;
+                    continue;
+                } else {
+                    $index += $indexOffset;
+                    $description = $description ? ": $description" : "";
+                    $input = $test->type;
+                    unset($test->type);
+                    $output = [];
+                    foreach ((array) $test as $k => $v) {
+                        $prop = $propMap[$k] ?? null;
+                        assert(!is_null($prop), "Key '$k' is not mapped");
+                        $output[$prop] = $v;
+                    }
+                    yield "$file #$index$description" => [$input, $output];
+                    $description = null;
+                }
+            }
+        }
+
     }
 
     public function testDecodeAByteString(): void {
