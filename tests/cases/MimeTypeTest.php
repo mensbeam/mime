@@ -87,7 +87,6 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
                 }
             }
         }
-
     }
 
     public function testDecodeAByteString(): void {
