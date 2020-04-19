@@ -25,3 +25,15 @@ $typeString = 'TeXt/HTML;  CHARset="UTF\-8"; charset=iso-8859-1; unset=';
 $mimeType = \MensBeam\Mime\MimeType::parse($typeString);
 echo (string) $mimeType; // prints "text/html;charset=UTF-8"
 ```
+
+### MIME type groups
+
+The MIME Sniffing specification defines a series of [MIME type groups](https://mimesniff.spec.whatwg.org/#mime-type-groups); these are exposed via the boolean properties `isArchive`, `isAudioVideo`, `isFont`, `isHtml`, `isImage`, `isJavascript`, `isJson`, `isScriptable`, `isXml`, and `isZipBased`. For example:
+
+```php
+$mimeType = \MensBeam\Mime\MimeType::parse("image/svg+xml");
+var_export($mimeType->isImage);      // prints "true"
+var_export($mimeType->isXml);        // prints "true"
+var_export($mimeType->isScriptable); // prints "true"
+var_export($mimeType->isArchive);    // prints "false"
+```
