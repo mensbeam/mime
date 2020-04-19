@@ -74,8 +74,8 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
                 } else {
                     $index += $indexOffset;
                     $description = $description ? ": $description" : "";
-                    $input = $test->type;
-                    unset($test->type);
+                    $input = $test->input;
+                    unset($test->input);
                     $output = [];
                     foreach ((array) $test as $k => $v) {
                         $prop = $propMap[$k] ?? null;
