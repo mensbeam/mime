@@ -10,7 +10,7 @@ use MensBeam\Mime\MimeType as Mime;
 
 /** @covers \MensBeam\Mime\MimeType */
 class MimeTypeTest extends \PHPUnit\Framework\TestCase {
-    /** @dataProvider provideStandardTests */
+    /** @dataProvider provideStandardParsingTests */
     public function testStandardTestSuite(string $input, ?string $exp): void {
         if (is_null($exp)) {
             $this->assertNull(Mime::parse($input));
@@ -19,8 +19,8 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
         }
     }
 
-    public function provideStandardTests(): iterable {
-        foreach (new \GlobIterator(__DIR__."/std/*.json", \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::KEY_AS_FILENAME) as $file => $path) {
+    public function provideStandardParsingTests(): iterable {
+        foreach (new \GlobIterator(__DIR__."/*mime-types.json", \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::KEY_AS_FILENAME) as $file => $path) {
             $indexOffset = 0;
             $description = "";
             foreach (json_decode(file_get_contents($path)) as $index => $test) {

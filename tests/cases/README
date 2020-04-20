@@ -2,11 +2,10 @@ The MimeType class is an original work, but its test suite is derived
 in part from an existing test corpus from the following source:
 
 The Web Platform Test suite 
-    <https://github.com/web-platform-tests/wpt/tree/62317fb983ca5687e4133d89f5523839fdab7f69/mimesniff/mime-types>
+    <https://github.com/web-platform-tests/wpt/tree/5c417eadfaa7ff328eb1cbc6338b843d73de4f63/mimesniff/mime-types>
 
-The license text is reproduced below, but please note that the license text 
-has changed since the last time the mimesniff portion of the test suite was
-modified; the text included here is current as of 2019-04-25.
+The license text is reproduced below. As a note of historical interest,
+the mime-groups.json file originated as tests for this library.
 
 
 Copyright 2019 web-platform-tests contributors
