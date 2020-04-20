@@ -74,15 +74,12 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
                 } else {
                     $index += $indexOffset;
                     $description = $description ? ": $description" : "";
-                    $input = $test->input;
-                    unset($test->input);
-                    $output = [];
-                    foreach ((array) $test as $k => $v) {
-                        $prop = $propMap[$k] ?? null;
-                        assert(!is_null($prop), "Key '$k' is not mapped");
-                        $output[$prop] = $v;
+                    $output = array_combine(array_values($propMap), array_fill(0, sizeof($propMap), false));
+                    foreach ($test->groups as $group) {
+                        assert(isset($propMap[$group]), "Group '$group' is not mapped to a property");
+                        $output[$propMap[$group]] = true;
                     }
-                    yield "$file #$index$description" => [$input, $output];
+                    yield "$file #$index$description" => [$test->input, $output];
                     $description = null;
                 }
             }
