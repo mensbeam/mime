@@ -66,45 +66,6 @@ PATTERN;
     protected const QUOTED_VALUE_PATTERN = '/^"((?:\\\"|[\t !\x{23}-\x{7E}\x{80}-\x{FF}])*)(?:"|$)/su';
     protected const ESCAPE_PATTERN = '/\\\(.)/s';
     protected const CHAR_MAP = [0x80 => "\u{80}","\u{81}","\u{82}","\u{83}","\u{84}","\u{85}","\u{86}","\u{87}","\u{88}","\u{89}","\u{8a}","\u{8b}","\u{8c}","\u{8d}","\u{8e}","\u{8f}","\u{90}","\u{91}","\u{92}","\u{93}","\u{94}","\u{95}","\u{96}","\u{97}","\u{98}","\u{99}","\u{9a}","\u{9b}","\u{9c}","\u{9d}","\u{9e}","\u{9f}","\u{a0}","\u{a1}","\u{a2}","\u{a3}","\u{a4}","\u{a5}","\u{a6}","\u{a7}","\u{a8}","\u{a9}","\u{aa}","\u{ab}","\u{ac}","\u{ad}","\u{ae}","\u{af}","\u{b0}","\u{b1}","\u{b2}","\u{b3}","\u{b4}","\u{b5}","\u{b6}","\u{b7}","\u{b8}","\u{b9}","\u{ba}","\u{bb}","\u{bc}","\u{bd}","\u{be}","\u{bf}","\u{c0}","\u{c1}","\u{c2}","\u{c3}","\u{c4}","\u{c5}","\u{c6}","\u{c7}","\u{c8}","\u{c9}","\u{ca}","\u{cb}","\u{cc}","\u{cd}","\u{ce}","\u{cf}","\u{d0}","\u{d1}","\u{d2}","\u{d3}","\u{d4}","\u{d5}","\u{d6}","\u{d7}","\u{d8}","\u{d9}","\u{da}","\u{db}","\u{dc}","\u{dd}","\u{de}","\u{df}","\u{e0}","\u{e1}","\u{e2}","\u{e3}","\u{e4}","\u{e5}","\u{e6}","\u{e7}","\u{e8}","\u{e9}","\u{ea}","\u{eb}","\u{ec}","\u{ed}","\u{ee}","\u{ef}","\u{f0}","\u{f1}","\u{f2}","\u{f3}","\u{f4}","\u{f5}","\u{f6}","\u{f7}","\u{f8}","\u{f9}","\u{fa}","\u{fb}","\u{fc}","\u{fd}","\u{fe}","\u{ff}"];
-    protected const SNIFF_PATTERNS_IMAGE = [
-        '/^\x{00}\x{00}[\x{01}\x{02}]\x{00}/s'  => "image/x-icon",
-        '/^BM/s'                                => "image/bmp",
-        '/^GIF8[79]a/s'                         => "image/gif",
-        '/^RIFF.{4}WEBPVP/s'                    => "image/webp",
-        '/^\x{89}PNG\r\n\x{1A}\n/s'             => "image/png",
-        '/^\x{FF}\x{D8}\x{FF}/s'                => "imaged/jpeg",
-    ];
-    protected const SNIFF_PATTERNS_AUDIOVIDEO = [
-        '/^\.snd/s'                 => "audio/basic",
-        '/^FORM.{4}AIFF/s'          => "audio/aiff",
-        '/^ID3/s'                   => "audi/mpeg",
-        '/^OggS\x{00}/s'            => "application/ogg",
-        '/^MThd\x{00}{3}\x{06}/s'   => "audio/midi",
-        '/^RIFF.{4}AVI /s'          => "video/avi",
-        '/^RIFF.{4}WAVE/s'          => "audio/wave",
-    ];
-    protected const SNIFF_PATTERNS_FONT = [
-        '/^.{34}LP/s'                   => "application/vnd.ms-fontobject",
-        '/^\x{00}\x{01}\x{00}{2}/s'     => "font/ttf",
-        '/^OTTO/s'                      => "font/otf",
-        '/^ttcf/s'                      => "font/collection",
-        '/^wOFF/s'                      => "font/woff",
-        '/^wOF2/s'                      => "font/woff2",
-    ];
-    protected const SNIFF_PATTERNS_ARCHIVE = [
-        '/^\x{1F}\x{8B}\x{08}/s'        => "application/x-gzip",
-        '/^PK\x{03}\x{04}/s'            => "application/zip",
-        '/^Rar \x{1A}\x{07}\x{00}/s'    => "application/x-rar-compressed",
-    ];
-    protected const SNIFF_PATTERNS_UNKNWON_SCRIPTABLE = [
-        '/^\s*<(?:!DOCTYPE HTML|HTML|HEAD|SCRIPT|IFRAME|H1|DIV|FONT|TABLE|A|B|STYLE|TITLE|BODY|BR|P|!--)[ >]/si'    => "text/html",
-        '/^\s*<\?xml/s'                                                                                             => "text/xml",
-        '/^%PDF-/s'                                                                                                 => "application/pdf",
-    ];
-    protected const SNIFF_PATTERN_UNKNWON_SAFE = [
-        '/^%!PS-Adobe-/s'                                               => "application/postscript",
-        '/^(?:(?:\x{FE}\x{FF}|\x{FF}\x{FE})..|\x{EF}\x{BB}\x{BF}.)/s'   => "text/plain",
-    ];
 
     protected $type = "";
     protected $subtype = "";
