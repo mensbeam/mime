@@ -1,5 +1,5 @@
 {
     "require-dev": {
-        "consolidation/robo": "^2.0"
+        "consolidation/robo": "^5.0"
     }
 }
