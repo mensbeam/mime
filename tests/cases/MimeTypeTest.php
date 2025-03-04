@@ -7,10 +7,12 @@ declare(strict_types=1);
 namespace MensBeam\Mime\TestCase;
 
 use MensBeam\Mime\MimeType as Mime;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
-/** @covers \MensBeam\Mime\MimeType */
+#[CoversClass(Mime::class)]
 class MimeTypeTest extends \PHPUnit\Framework\TestCase {
-    /** @dataProvider provideStandardParsingTests */
+    #[DataProvider("provideStandardParsingTests")]
     public function testStandardTestSuite(string $input, ?string $exp): void {
         if (is_null($exp)) {
             $this->assertNull(Mime::parse($input));
@@ -19,7 +21,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
         }
     }
 
-    public function provideStandardParsingTests(): iterable {
+    public static function provideStandardParsingTests(): iterable {
         foreach (new \GlobIterator(__DIR__."/*mime-types.json", \FilesystemIterator::CURRENT_AS_PATHNAME | \FilesystemIterator::KEY_AS_FILENAME) as $file => $path) {
             $indexOffset = 0;
             $description = "";
@@ -40,7 +42,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
         }
     }
 
-    /** @dataProvider provideMimeTypeGroups */
+    #[DataProvider("provideMimeTypeGroups")]
     public function testDetermineMimeTypeGroups(string $type, array $booleans): void {
         $t = Mime::parse($type);
         foreach ($booleans as $prop => $exp) {
@@ -48,7 +50,7 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
         }
     }
 
-    public function provideMimeTypeGroups(): iterable {
+    public static function provideMimeTypeGroups(): iterable {
         $propMap = [
             'image'          => "isImage",
             'audio or video' => "isAudioVideo",
