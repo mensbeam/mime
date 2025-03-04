@@ -1,22 +1,20 @@
 <?xml version="1.0"?>
 <phpunit
-    colors="true"
-    bootstrap="bootstrap.php"
-    cacheTokens="true"
-    convertErrorsToExceptions="false"
-    convertNoticesToExceptions="false"
-    convertWarningsToExceptions="false"
-    beStrictAboutTestsThatDoNotTestAnything="true"
-    beStrictAboutOutputDuringTests="true"
-    forceCoversAnnotation="true"
-    executionOrder="default"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+  colors="true"
+  bootstrap="bootstrap.php"
+  beStrictAboutTestsThatDoNotTestAnything="true"
+  beStrictAboutOutputDuringTests="true"
+  executionOrder="defects"
+  cacheDirectory=".phpunit.cache"
+  requireCoverageMetadata="true"
 >
-
-<filter>
-    <whitelist processUncoveredFilesFromWhitelist="true">
-        <directory suffix=".php">../lib</directory>
-    </whitelist>
-</filter>
+  <source>
+    <include>
+      <directory suffix=".php">../lib</directory>
+    </include>
+  </source>
 
 <testsuites>
     <testsuite name="MIME">

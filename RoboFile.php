@@ -88,31 +88,22 @@ class RoboFile extends \Robo\Tasks {
         return $t->run();
     }
 
+    /** Finds the first suitable means of computing code coverage, either pcov or xdebug. */
     protected function findCoverageEngine(): string {
         $dir = rtrim(ini_get("extension_dir"), "/").\DIRECTORY_SEPARATOR;
-        $ext = IS_WIN ? "dll" : (IS_MAC ? "dylib" : "so");
+        $ext = IS_WIN ? "dll" : "so";
         $php = escapeshellarg(\PHP_BINARY);
         $code = escapeshellarg(BASE."lib");
         if (extension_loaded("pcov")) {
             return "$php -d pcov.enabled=1 -d pcov.directory=$code";
         } elseif (extension_loaded("xdebug")) {
-            return $php;
+            return "$php -d xdebug.mode=coverage";
         } elseif (file_exists($dir."pcov.$ext")) {
             return "$php -d extension=pcov.$ext -d pcov.enabled=1 -d pcov.directory=$code";
-        } elseif (file_exists($dir."pcov.$ext")) {
-            return "$php -d zend_extension=xdebug.$ext";
+        } elseif (file_exists($dir."xdebug.$ext")) {
+            return "$php -d zend_extension=xdebug.$ext -d xdebug.mode=coverage";
         } else {
-            if (IS_WIN) {
-                $dbg = dirname(\PHP_BINARY)."\\phpdbg.exe";
-                $dbg = file_exists($dbg) ? $dbg : "";
-            } else {
-                $dbg = trim(`which phpdbg 2>/dev/null`);
-            }
-            if ($dbg) {
-                return escapeshellarg($dbg)." -qrr";
-            } else {
-                return $php;
-            }
+            return $php;
         }
     }
 
@@ -121,26 +112,37 @@ class RoboFile extends \Robo\Tasks {
         return $all ? ">$hole 2>&1" : "2>$hole";
     }
 
+    /** Executes PHPUnit, used by the test and coverage tasks.
+     *
+     * @param string $executor The path to the PHP binary to execute with any required extra arguments. Normally this is either "php" or the result of findCoverageEngine()
+     * @param string $set The set of tests to run, either "typical" (excludes redundant tests), "quick" (excludes redundant and slow tests), "coverage" (excludes tests not needed for coverage), or "full" (all tests)
+     * @param array $args Extra arguments passed by Robo from the command line
+     */
     protected function runTests(string $executor, string $set, array $args): Result {
         switch ($set) {
             case "typical":
-                $set = ["--exclude-group", "optional"];
+                $exc = ["optional"];
                 break;
             case "quick":
-                $set = ["--exclude-group", "optional,slow"];
+                $exc = ["optional", "slow"];
                 break;
             case "coverage":
-                $set = ["--exclude-group", "optional,coverageOptional"];
+                $exc = ["optional", "coverageOptional"];
                 break;
             case "full":
-                $set = [];
+                $exc = [];
                 break;
             default:
                 throw new \Exception;
         }
+        $extra = ["--display-phpunit-deprecations"];
+        foreach ($exc as $group) {
+            $extra[] = "--exclude-group";
+            $extra[] = $group;
+        }
         $execpath = norm(BASE."vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit");
         $confpath = realpath(BASE_TEST."phpunit.dist.xml") ?: norm(BASE_TEST."phpunit.xml");
         //$this->taskServer(8000)->host("localhost")->dir(BASE_TEST."docroot")->rawArg("-n")->arg(BASE_TEST."server.php")->rawArg($this->blackhole())->background()->run();
-        return $this->taskExec($executor)->option("-d", "zend.assertions=1")->arg($execpath)->option("-c", $confpath)->args(array_merge($set, $args))->run();
+        return $this->taskExec($executor)->option("-d", "zend.assertions=1")->arg($execpath)->option("-c", $confpath)->args(array_merge($extra, $args))->run();
     }
 }
