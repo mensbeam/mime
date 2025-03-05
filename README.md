@@ -28,7 +28,7 @@ echo (string) $mimeType; // prints "text/html;charset=UTF-8"
 
 ### Extracting from HTTP headers
 
-A structured `MimeType` instance may also be produced from one or more HTTP header lines using the `extract()` method:
+A structured `MimeType` instance may also be produced [from one or more HTTP header lines](https://fetch.spec.whatwg.org/#concept-header-extract-mime-type) using the `extract()` method:
 
 ```php
 /* Assume $response is a PSR-7 HTTP message containing the following header fields:
