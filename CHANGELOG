@@ -1,3 +1,10 @@
+Version 0.3.0 (2025-03-??)
+==========================
+
+New Features:
+- Add an 'extract' static method to properly extract a MIME from one or more
+  HTTP header fields
+
 Version 0.2.1 (2021-03-06)
 ==========================
 

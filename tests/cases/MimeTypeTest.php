@@ -132,4 +132,41 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
         $this->assertSame("text/html", $obj->essence);
         $this->assertSame(['version' => "3.2", 'charset' => "utf-8"], $obj->params);
     }
+
+    #[DataProvider("provideCombinedTypes")]
+    public function testSplitMultiples($in, array $exp): void {
+        $m = new \ReflectionMethod(Mime::class, "split");
+        $this->assertSame($exp, $m->invoke(null, $in));
+    }
+
+    public static function provideCombinedTypes(): iterable {
+        return [
+            ['test,test',                      ['test', 'test']],
+            [['test', 'test, test'],           ['test', 'test', 'test']],
+            ['test;a="a,b",test',              ['test;a="a,b"', 'test']],
+            ['',                               []],
+            ['a,',                             ['a']],
+            [',a',                             ['a']],
+            ['test;b="ook\\\\,eek\\"\\!",eek', ['test;b="ook\\\\,eek\\"\\!"', 'eek']]
+        ];
+    }
+
+    #[DataProvider("provideHeaderFields")]
+    public function testExtractFromHeader($in, ?string $exp) {
+        $this->assertSame($exp, (string) Mime::extract($in));
+    }
+
+    public static function provideHeaderFields(): iterable {
+        // most of these tests are taken from examples in the specification
+        return [
+            ['text/html, text/*',                               'text/*'],
+            ['text/plain;charset=gbk, text/html',               'text/html'],
+            ['text/html;charset=gbk;a=b, text/html;x=y',        'text/html;x=y;charset=gbk'],
+            [['text/html;charset=gbk;a=b', 'text/html;x=y'],    'text/html;x=y;charset=gbk'],
+            [['text/html;charset=gbk', 'x/x', 'text/html;x=y'], 'text/html;x=y'],
+            [['text/html', 'cannot-parse'],                     'text/html'],
+            [['text/html', '*/*'],                              'text/html'],
+            [['text/html', ''],                                 'text/html'],
+        ];
+    }
 }

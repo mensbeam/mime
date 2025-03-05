@@ -65,6 +65,7 @@ PATTERN;
     protected const BARE_VALUE_PATTERN = '/^[\t\x{20}-\x{7E}\x{80}-\x{FF}]+$/su';
     protected const QUOTED_VALUE_PATTERN = '/^"((?:\\\"|[\t !\x{23}-\x{7E}\x{80}-\x{FF}])*)(?:"|$)/su';
     protected const ESCAPE_PATTERN = '/\\\(.)/s';
+    protected const SPLIT_PATTERN = '/(?:[^",]+|"(?:\\\.|[^"\\\])*")+/s';
     protected const CHAR_MAP = [0x80 => "\u{80}","\u{81}","\u{82}","\u{83}","\u{84}","\u{85}","\u{86}","\u{87}","\u{88}","\u{89}","\u{8a}","\u{8b}","\u{8c}","\u{8d}","\u{8e}","\u{8f}","\u{90}","\u{91}","\u{92}","\u{93}","\u{94}","\u{95}","\u{96}","\u{97}","\u{98}","\u{99}","\u{9a}","\u{9b}","\u{9c}","\u{9d}","\u{9e}","\u{9f}","\u{a0}","\u{a1}","\u{a2}","\u{a3}","\u{a4}","\u{a5}","\u{a6}","\u{a7}","\u{a8}","\u{a9}","\u{aa}","\u{ab}","\u{ac}","\u{ad}","\u{ae}","\u{af}","\u{b0}","\u{b1}","\u{b2}","\u{b3}","\u{b4}","\u{b5}","\u{b6}","\u{b7}","\u{b8}","\u{b9}","\u{ba}","\u{bb}","\u{bc}","\u{bd}","\u{be}","\u{bf}","\u{c0}","\u{c1}","\u{c2}","\u{c3}","\u{c4}","\u{c5}","\u{c6}","\u{c7}","\u{c8}","\u{c9}","\u{ca}","\u{cb}","\u{cc}","\u{cd}","\u{ce}","\u{cf}","\u{d0}","\u{d1}","\u{d2}","\u{d3}","\u{d4}","\u{d5}","\u{d6}","\u{d7}","\u{d8}","\u{d9}","\u{da}","\u{db}","\u{dc}","\u{dd}","\u{de}","\u{df}","\u{e0}","\u{e1}","\u{e2}","\u{e3}","\u{e4}","\u{e5}","\u{e6}","\u{e7}","\u{e8}","\u{e9}","\u{ea}","\u{eb}","\u{ec}","\u{ed}","\u{ee}","\u{ef}","\u{f0}","\u{f1}","\u{f2}","\u{f3}","\u{f4}","\u{f5}","\u{f6}","\u{f7}","\u{f8}","\u{f9}","\u{fa}","\u{fb}","\u{fc}","\u{fd}","\u{fe}","\u{ff}"];
 
     protected $type = "";
@@ -153,6 +154,38 @@ PATTERN;
      */
     public static function parseBytes(string $mimeType): ?self {
         return static::parse(static::decode($mimeType));
+    }
+
+    /** Extracts the correct MIME type from an ordered list of candidates
+     * 
+     * The input to this can either be an array as returned by PSR-7's 
+     * MessageInterface::getHeader(), or a string as returned by PSR-7's
+     * MessageInterface::getHeaderLine().
+     * 
+     * @see https://fetch.spec.whatwg.org/#concept-header-extract-mime-type
+     * @param string[]|string $values The candidate Content-Type values from which to extract a single value
+     */
+    public static function extract($values): ?self {
+        // split the input safely
+        $values = self::split($values);
+        // run the algorithm
+        $mimeType = null;
+        $essence = null;
+        $charset = null;
+        foreach ($values as $value) {
+            $temp = self::parseBytes($value);
+            if (!$temp || $temp->essence() === "*/*") {
+                continue;
+            }
+            $mimeType = $temp;
+            if ($mimeType->essence() !== $essence) {
+                $charset = $mimeType->params['charset'] ?? null;
+                $essence = $mimeType->essence();
+            } elseif (!isset($mimeType->params['charset']) && $charset !== null) {
+                $mimeType->params['charset'] = $charset;
+            }
+        }
+        return $mimeType;
     }
 
     /** Returns the UTF-8 isomorphically decoded form of the binary string $bytes
@@ -264,5 +297,23 @@ PATTERN;
             return preg_replace(self::ESCAPE_PATTERN, '$1', $match[1]);
         }
         return null;
+    }
+
+    /** Splits a comma-separated list of MIME types into an array of strings, without parsing the MIME types
+     * 
+     * At this point in processing it is immaterial whether the input is bytes or UTF-8 code points
+     * 
+     * @see https://fetch.spec.whatwg.org/#concept-header-list-get-decode-split
+    */
+    protected static function split($types): array {
+        if (is_array($types)) {
+            $types = implode(", ", $types);
+        }
+        if (preg_match_all(self::SPLIT_PATTERN, $types, $matches, \PREG_PATTERN_ORDER)) {
+            return array_map(function($v) {
+                return trim($v, "\n\r\t ");
+            }, $matches[0]);
+        }
+        return [];
     }
 }
