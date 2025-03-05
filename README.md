@@ -38,8 +38,8 @@ A structured `MimeType` instance may also be produced [from one or more HTTP hea
    Content-Type: text/html; foo=bar
 
 */
-echo (string) MimeType::extract($response->getHeader("Content-Type")); // prints "text/html;foo=bar;charset=UTF-8"
-echo (string) MimeType::extract($response->getHeaderLine("Content-Type")); // also prints "text/html;foo=bar;charset=UTF-8"
+echo (string) \MensBeam\Mime\MimeType::extract($response->getHeader("Content-Type")); // prints "text/html;foo=bar;charset=UTF-8"
+echo (string) \MensBeam\Mime\MimeType::extract($response->getHeaderLine("Content-Type")); // also prints "text/html;foo=bar;charset=UTF-8"
 ```
 
 ### MIME type groups
