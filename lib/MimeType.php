@@ -193,7 +193,7 @@ PATTERN;
         return $mimeType;
     }
 
-    /** Performs content negotiation returning a single winning MIME type from $types, or null if no types are acceptable
+    /** Performs content type negotiation returning a single winning MIME type from $types, or null if no types are acceptable
      * 
      * The `$types` array should be a list ordered with the local preferred
      * types appearing before less-preferred types. If two or more types win
@@ -211,7 +211,7 @@ PATTERN;
      * @param string[]|string $accept The remote HTTP Accept value(s), as returned by PSR-7's MessageInterface::getHeader() or MessageInterface::getHeaderLine()
      * @throws \InvalidArgumentException Thrown if any member of `$types` fails parsing or is a wildcard type
     */
-    public function negotiate(array $types, $accept): ?string {
+    public static function negotiate(array $types, $accept): ?string {
         // start by parsing the Accept header field(s)
         $accept = self::split($accept);
         $prefs = [];
@@ -226,7 +226,10 @@ PATTERN;
             if (isset($q) && preg_match(self::QVALUE_PATTERN, $q)) {
                 $q = (float) $q;
             } else {
-                // assume the default of 1.0 if no valid value is present
+                // NOTE: While HTTP defines what a valid qvalue is, it does not
+                //   specify what to do in the face of an invalid one. We have
+                //   chosen to proceed as if the qvalue were not there at all,
+                //   which yields an effective value of 1.0 (the default)
                 $q = 1.0;
             }
             // remove the qvalue from the type, then sort the remaining
@@ -249,18 +252,32 @@ PATTERN;
             // normalize the type as we did for Accept values above
             unset($t->params['q']);
             ksort($t->params, \SORT_STRING);
-            // construct three candidates of decreasing specificity
+            // construct an array of candidates in decreasing order of
+            //   specificity. It is unclear if parameters should be considered
+            //   on wildcards, but there's probably no harm in doing so, and
+            //   the charset parameter would at least be valid for the text/*
+            //   pseudo-type
             $p = $t->params();
-            $c1 = $t->type."/".$t->subtype.$p;
-            $c2 = $t->type."/*".$p;
-            $c3 = "*/*".$p;
-            // compare all Accept values to the three candidates and if the
-            //   qvalue is higher than the current highest Q, assign the type
-            //   as the winner so far
-            foreach ($prefs as $k => $q) {
-                if (($k === $c1 || $k === $c2 || $k === $c3) && $q > $qMax) {
-                    $winner = $type;
-                    $qMax = $q;
+            $candidates = array_filter([
+                $p ? $t->type."/".$t->subtype.$p : null,
+                $t->type."/".$t->subtype,
+                $p ? $t->type."/*$p" : null,
+                $t->type."/*",
+                $p ? "*/*$p" : null,
+                "*/*",
+            ]);
+            // find a quality value for the most specific variant of the local
+            //   type possible, if any; if the quality is higher than the 
+            //   previously highest quality, assume the type is the winner
+            foreach ($candidates as $c) {
+                foreach ($prefs as $k => $q) {
+                    if ($k === $c) {
+                        if ($q > $qMax) {
+                            $winner = $type;
+                            $qMax = $q;
+                        }
+                        break 2;
+                    }
                 }
             }
         }
