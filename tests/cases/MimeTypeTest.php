@@ -169,4 +169,41 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
             [['text/html', ''],                                 'text/html'],
         ];
     }
+
+    #[DataProvider("provideNegotiations")]
+    public function testNegotiateContentTypes(array $types, $accept, $exp): void {
+        if ($exp instanceof \Throwable) {
+            $this->expectException(get_class($exp));
+            Mime::negotiate($types, $accept);
+        } else {
+            $this->assertSame($exp, Mime::negotiate($types, $accept));
+        }
+    }
+
+    public static function provideNegotiations(): iterable {
+        return [
+            "No acceptable types"  => [["text/plain", "text/html"],  "",                                    null],
+            "Invalid remote types" => [["text/plain", "text/html"],  "invalid",                             null],
+            "Wildcard Types 1"     => [["text/plain", "text/html"],  "*/*",                                 "text/plain"],
+            "Wildcard Types 2"     => [["text/plain", "text/html"],  "text/*",                              "text/plain"],
+            "Bogus qvalue 1"       => [["text/plain", "text/html"],  "text/html, text/plain;q=!",           "text/plain"],
+            "Bogus qvalue 2"       => [["text/plain", "text/html"],  "text/html;q=3, text/plain;q=2",       "text/plain"],
+            "Bogus qvalue 3"       => [["text/plain", "text/html"],  "text/html, text/plain;q=0.0001",      "text/plain"],
+            "Bogus qvalue 4"       => [["text/plain", "text/html"],  "text/html, text/plain;q=0.0010",      "text/plain"],
+            "Bogus qvalue 5"       => [["text/plain", "text/html"],  "text/html, text/plain;q=\" 0.1\"",    "text/plain"],
+            "Bogus qvalue 6"       => [["text/plain", "text/html"],  "text/html;q=1.1, text/plain",         "text/plain"],
+            "Valid qvalue 1"       => [["text/plain", "text/html"],  "text/html, text/plain;q=0.1",         "text/html"],
+            "Valid qvalue 2"       => [["text/plain", "text/html"],  "text/html;q=0.009, text/plain;q=0.1", "text/plain"],
+            "Valid qvalue 3"       => [["text/plain", "text/html"],  "text/html, text/plain;q=\"0.1\"",     "text/html"],
+            "Valid qvalue 4"       => [["text/plain", "text/html"],  "text/html, text/plain;q=\"0\\.1\"",   "text/html"],
+            "Valid qvalue 5"       => [["text/plain", "text/html"],  "text/*;q=0.8, text/plain;q=0.1",      "text/html"],
+            "Parameters 1"         => [["text/plain;charset=ascii"], "text/plain",                          "text/plain;charset=ascii"],
+            "Parameters 2"         => [["text/plain;charset=ascii"], "text/plain;charset=\"ascii\"",        "text/plain;charset=ascii"],
+            "Parameters 3"         => [["text/plain;charset=ascii"], "text/*;charset=ascii",                "text/plain;charset=ascii"],
+            "Parameters 4"         => [["text/plain;charset=ascii"], "*/*;charset=ascii",                   "text/plain;charset=ascii"],
+            "Parameters 5"         => [["x/y;a=a;b=b"],              "x/y;b=b;a=a",                         "x/y;a=a;b=b"],
+            "Failure 1"            => [["invalid"],                  "x/y",                                 new \InvalidArgumentException()],
+            "Failure 2"            => [["text/*"],                   "x/y",                                 new \InvalidArgumentException()],
+        ];
+    }
 }

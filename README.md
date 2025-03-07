@@ -31,7 +31,8 @@ echo (string) $mimeType; // prints "text/html;charset=UTF-8"
 A structured `MimeType` instance may also be produced [from one or more HTTP header lines](https://fetch.spec.whatwg.org/#concept-header-extract-mime-type) using the `extract()` method:
 
 ```php
-/* Assume $response is a PSR-7 HTTP message containing the following header fields:
+/* Assume $response is a PSR-7 HTTP message containing the following
+   header fields:
 
    Content-Type: text/html; charset=UTF-8, invalid
    Content-Type:
@@ -41,6 +42,33 @@ A structured `MimeType` instance may also be produced [from one or more HTTP hea
 echo (string) \MensBeam\Mime\MimeType::extract($response->getHeader("Content-Type")); // prints "text/html;foo=bar;charset=UTF-8"
 echo (string) \MensBeam\Mime\MimeType::extract($response->getHeaderLine("Content-Type")); // also prints "text/html;foo=bar;charset=UTF-8"
 ```
+
+### Negotiating a content type
+
+[HTTP content type negotiation](https://www.rfc-editor.org/rfc/rfc9110.html#name-accept) can be performed using the `negotiate` static method:
+
+```php
+/* Assume $request1 is a PSR-7 HTTP message containing the following
+   header fields:
+
+   Accept: application/json;q=0.8, application/xml
+   Accept: text/html;q=0.1, text/*;q=0.7
+
+   Assume $request2 is a PSR-7 HTTP message containing the following
+   header fields:
+
+   Accept: application/xml
+   Accept: application/json
+
+*/
+$ourTypes1 = ["application/json", "application/xml"];
+$ourTypes2 = ["text/html", "text/xml", "text/plain"];
+echo \MensBeam\Mime\MimeType::negotiate($ourTypes1, $request1->getHeader("Accept")); // "application/xml" has higher qvalue, so is returned
+echo \MensBeam\Mime\MimeType::negotiate($ourTypes2, $request1->getHeaderLine("Accept")); // "text/html" has lower qvalue and is disqualified; "text/xml" appears first in our array, so is returned
+echo \MensBeam\Mime\MimeType::negotiate($ourTypes1, $request2->getHeader("Accept")); // "application/json" appears first in our array, so is returned
+echo \MensBeam\Mime\MimeType::negotiate($ourTypes2, $request2->getHeaderLine("Accept")); // no types are acceptable; null is returned
+```
+
 
 ### MIME type groups
 

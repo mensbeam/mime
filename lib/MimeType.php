@@ -267,7 +267,7 @@ PATTERN;
                 "*/*",
             ]);
             // find a quality value for the most specific variant of the local
-            //   type possible, if any; if the quality is higher than the 
+            //   type possible, if any; if the quality is higher than the
             //   previously highest quality, assume the type is the winner
             foreach ($candidates as $c) {
                 foreach ($prefs as $k => $q) {
