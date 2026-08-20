@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=7.1",
-        "psr/http-message": "^1.0"
+        "psr/http-message": "^1.0 || ^2.0"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.3",
@@ -28,8 +28,22 @@
         }
     },
     "scripts": {
+        "test": ["./scripts/test test"],
+        "test:quick": ["./scripts/test test:quick"],
+        "test:full": ["./scripts/test test:full"],
+        "coverage": ["./scripts/test coverage"],
+        "coverage:full": ["./scripts/test coverage:full"],
+        "clean": ["./vendor/bin/php-cs-fixer fix"],
         "post-install-cmd": ["@composer bin all install"],
         "post-update-cmd": ["@composer bin all update"]
+    },
+    "scripts-descriptions": {
+        "test": "Executes the PHPUnit test suite excluding optional tests",
+        "test:quick": "Executes the PHPUnit test suite excluding optional and slow tests",
+        "test:full": "Executes the PHPUnit test suite excluding no tests",
+        "coverage": "Executes the PHPUnit test suite and produces a code coverage report, excluding tests redundant to coverage",
+        "coverage:full": "Executes the PHPUnit test suite and produces a code coverage report, excluding no tests",
+        "clean": "Corrects defifiencies in coding style"
     },
     "autoload": {
         "psr-4": {

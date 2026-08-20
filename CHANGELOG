@@ -1,3 +1,9 @@
+Version 0.3.1 (2026-08-20)
+==========================
+
+Changes:
+- Relax psr/http-message version requirement
+
 Version 0.3.0 (2025-03-07)
 ==========================
 
