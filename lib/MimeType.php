@@ -123,6 +123,25 @@ PATTERN;
         return $this->essence().$this->params();
     }
 
+    /** Produces a new instance from the current instancewith the specified type information
+     * 
+     * Parameters from the existing essence are copied; parameters from the
+     * new instance my override the existing ones.
+     * 
+     * This is useful to convert one type into a compatible type, such as
+     * translating application/xhtml+xml to text/html without losing
+     * charset information.
+     * 
+     * If the supplied essence is invalid, null will be returned.
+     */
+    public function withType(string $type): ?static {
+        $out = static::parse($type);
+        if ($out) {
+            $out->params = array_merge($this->params, $out->params);
+        }
+        return $out;
+    }
+
     protected function essence(): string {
         return $this->type."/".$this->subtype;
     }

@@ -1,3 +1,10 @@
+Version 0.4.0 (2026-09-25)
+==========================
+
+New features:
+- Add a 'withType' instance method to convert a type into another type while
+  retaining parameters
+
 Version 0.3.1 (2026-08-20)
 ==========================
 
@@ -7,10 +14,11 @@ Changes:
 Version 0.3.0 (2025-03-07)
 ==========================
 
-New Features:
+New features:
 - Add an 'extract' static method to properly extract a MIME from one or more
   HTTP header fields
-- Add a 'negotiate' static method for performing HTTP content type negotiation
+- Add a 'negotiate' static method for performing server-side HTTP content
+  type negotiation
 
 Version 0.2.1 (2021-03-06)
 ==========================

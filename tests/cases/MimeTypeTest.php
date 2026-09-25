@@ -206,4 +206,14 @@ class MimeTypeTest extends \PHPUnit\Framework\TestCase {
             "Failure 2"            => [["text/*"],                   "x/y",                                 new \InvalidArgumentException()],
         ];
     }
+
+    public function testSubstituteEssence(): void {
+        $orig = Mime::parse("application/xhtml+xml;charset=shift_jis");
+        $this->assertSame("application/xhtml+xml;charset=shift_jis", (string) $orig);
+        $this->assertSame("text/html;charset=shift_jis", (string) $orig->withType("text/html"));
+        $this->assertSame("text/html;charset=utf-8", (string) $orig->withType("text/html;charset=utf-8"));
+        $this->assertSame("text/html;charset=shift_jis;lang=en", (string) $orig->withType("text/html;lang=en"));
+        $this->assertNull($orig->withType("bogus"));
+        $this->assertSame("application/xhtml+xml;charset=shift_jis", (string) $orig);
+    }
 }
